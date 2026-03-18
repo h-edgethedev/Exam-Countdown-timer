@@ -3,7 +3,9 @@ import os
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QHBoxLayout, QPushButton
 from PyQt5.QtCore import QTimer, QDateTime, Qt
 from PyQt5.QtGui import QFont, QFontDatabase
-
+course_title= input("Course code, title or name of exam: ")
+print("It is very important you input your exam date and time in this format \"dd-mm-yyyy hh:MM:ss\" as failure to do such might result in unexpected behavior")
+exam_date= input("Input date and time of the exam in the format \"dd-mm-yyyy hh:MM:ss\": ")
 
 THEMES = [
     {
@@ -47,12 +49,12 @@ class CountdownClock(QWidget):
         self.theme_timer = QTimer(self)
 
         tomorrow = QDateTime.currentDateTime().addDays(1)
-        self.exam_time = QDateTime.fromString("17-03-2026 12:00:00", "dd-MM-yyyy hh:mm:ss")
+        self.exam_time = QDateTime.fromString(exam_date, "dd-MM-yyyy hh:mm:ss")
         
         self.initUI()
 
     def initUI(self):
-        self.setWindowTitle("GET209 Exam Countdown")
+        self.setWindowTitle(f"{course_title} Exam Countdown")
         self.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint)
         self.setGeometry(400, 300, 600, 380)
 
@@ -69,7 +71,7 @@ class CountdownClock(QWidget):
         # ── Custom title bar ──────────────────────────────────────────
         title_bar = QHBoxLayout()
 
-        self.title_label = QLabel("GET207 EXAM")
+        self.title_label = QLabel(f"{course_title} Exam Countdown")
         self.title_label.setStyleSheet(
             "font-size: 20px; letter-spacing: 8px; background: transparent;"
         )
@@ -89,7 +91,7 @@ class CountdownClock(QWidget):
         main_layout.addLayout(title_bar)
 
         # ── Status label ──────────────────────────────────────────────
-        self.status_label = QLabel("COUNTDOWN TO EXAM")
+        self.status_label = QLabel(f"{course_title} Exam Countdown")
         self.status_label.setAlignment(Qt.AlignCenter)
         self.status_label.setStyleSheet(
             "font-size: 13px; letter-spacing: 4px; background: transparent;"
@@ -231,7 +233,7 @@ class CountdownClock(QWidget):
         if secs_remaining <= 3600:
             self.theme_timer.stop()
             self.set_color("#ff4444", "#661111")
-            self.status_label.setText("⚠  GET209 EXAM — UNDER 1 HOUR!  ⚠")
+            self.status_label.setText(f"⚠  {course_title} EXAM — UNDER 1 HOUR!  ⚠")
             self.status_label.setStyleSheet(
                 "font-size: 13px; color: #ff4444; letter-spacing: 4px; background: transparent;"
             )
