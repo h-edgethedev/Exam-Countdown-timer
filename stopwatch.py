@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import (QApplication, QWidget, QLabel, QVBoxLayout,
 from PyQt5.QtCore import QTimer, Qt
 from PyQt5.QtGui import QFont, QFontDatabase
 
-
+exam_date= input("")
 class Stopwatch(QWidget):
     def __init__(self):
         super().__init__()
