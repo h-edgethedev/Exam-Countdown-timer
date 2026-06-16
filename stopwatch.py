@@ -1,11 +1,13 @@
 import sys
 import os
+import winsound
 from PyQt5.QtWidgets import (QApplication, QWidget, QLabel, QVBoxLayout,
                               QHBoxLayout, QPushButton, QSpinBox)
 from PyQt5.QtCore import QTimer, Qt
 from PyQt5.QtGui import QFont, QFontDatabase
+from plyer import notification
 
-exam_date= input("")
+
 class Stopwatch(QWidget):
     def __init__(self):
         super().__init__()
@@ -18,15 +20,15 @@ class Stopwatch(QWidget):
         self.flash_state = False
         self.font_family = None
         self._drag_pos = None
+        self.alert_fired = False
         self.initUI()
 
     def initUI(self):
         self.setWindowTitle("Stopwatch")
         self.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint)
-        self.setGeometry(400, 250, 400, 380)
+        self.setGeometry(400, 250, 750, 460)
         self.setStyleSheet("background-color: #0a0a1a; border-radius: 12px;")
 
-        # Load DS-DIGIT font
         font_path = os.path.join(os.path.dirname(__file__), "DS-DIGIT.TTF")
         font_id = QFontDatabase.addApplicationFont(font_path)
         if font_id != -1:
@@ -144,9 +146,9 @@ class Stopwatch(QWidget):
 
             val_label = QLabel("00")
             val_label.setAlignment(Qt.AlignCenter)
-            val_label.setStyleSheet("font-size: 88px; color: #4488ff; border: none;")
+            val_label.setStyleSheet("font-size: 64px; color: #4488ff; border: none;")
             if self.font_family:
-                val_label.setFont(QFont(self.font_family, 88))
+                val_label.setFont(QFont(self.font_family, 64))
 
             unit_label = QLabel(unit)
             unit_label.setAlignment(Qt.AlignCenter)
@@ -188,12 +190,11 @@ class Stopwatch(QWidget):
 
         self.setLayout(main_layout)
 
-        # ── Timers ────────────────────────────────────────────────────
         self.timer.setInterval(10)
         self.timer.timeout.connect(self.update_display)
         self.flash_timer.timeout.connect(self.flash_display)
 
-    # ── Drag to move (frameless window) ──────────────────────────────
+    # ── Drag to move ──────────────────────────────────────────────────
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
             self._drag_pos = event.globalPos() - self.frameGeometry().topLeft()
@@ -219,7 +220,25 @@ class Stopwatch(QWidget):
             box.setStyleSheet(
                 f"border: 2px solid {color}; border-radius: 10px; padding: 6px;"
             )
-            val_label.setStyleSheet(f"font-size: 88px; color: {color}; border: none;")
+            val_label.setStyleSheet(f"font-size: 64px; color: {color}; border: none;")
+
+    # ── Alerts ────────────────────────────────────────────────────────
+    def fire_alerts(self):
+        if self.alert_fired:
+            return
+        self.alert_fired = True
+
+        # 3 rising beeps
+        for freq in [520, 640, 760]:
+            winsound.Beep(freq, 300)
+
+        # Windows toast notification
+        notification.notify(
+            title="⏱ Time's Up!",
+            message="Your stopwatch countdown has finished.",
+            app_name="H~EDGE Stopwatch",
+            timeout=10
+        )
 
     # ── Duration controls ─────────────────────────────────────────────
     def set_duration(self):
@@ -232,6 +251,7 @@ class Stopwatch(QWidget):
             self.elapsed_ms = 0
             self.countdown_mode = True
             self.running = False
+            self.alert_fired = False  # reset so alert can fire again
             self.timer.stop()
             self.flash_timer.stop()
             self.start_btn.setText("▶  START")
@@ -250,6 +270,7 @@ class Stopwatch(QWidget):
         self.target_ms = 0
         self.elapsed_ms = 0
         self.running = False
+        self.alert_fired = False
         self.timer.stop()
         self.flash_timer.stop()
         self.start_btn.setText("▶  START")
@@ -276,6 +297,7 @@ class Stopwatch(QWidget):
         self.flash_timer.stop()
         self.running = False
         self.elapsed_ms = 0
+        self.alert_fired = False
         self.start_btn.setText("▶  START")
         color = "#ff9900" if self.countdown_mode else "#4488ff"
         self.set_color(color)
@@ -295,6 +317,7 @@ class Stopwatch(QWidget):
                 self.start_btn.setText("▶  START")
                 if not self.flash_timer.isActive():
                     self.flash_timer.start(400)
+                self.fire_alerts()
         else:
             self._render_time(self.elapsed_ms)
 
